@@ -15,14 +15,14 @@ class StoreTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kitchen_id' => ['nullable', 'integer', 'exists:kitchens,id'],
+            'kitchen_id' => ['required', 'integer', 'exists:kitchens,id'],
             'category_option_id' => ['required', 'integer', 'exists:master_data_options,id'],
             'priority_option_id' => ['required', 'integer', 'exists:master_data_options,id'],
             'related_kitchen_tool_id' => ['nullable', 'integer', 'exists:kitchen_tools,id'],
             'related_vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:2000'],
-            'photo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
+            'photo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,10 +17,14 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var User $user */
+        $user = $this->route('user');
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('user'))],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'password' => ['nullable', 'confirmed', Password::defaults()],
+            'kitchen_id' => [Rule::requiredIf($user->isDriver()), 'nullable', 'integer', 'exists:kitchens,id'],
         ];
     }
 }

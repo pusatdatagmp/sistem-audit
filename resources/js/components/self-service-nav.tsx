@@ -1,20 +1,27 @@
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { AlertTriangle, ClipboardCheck, Truck } from 'lucide-react';
+import { AlertTriangle, ClipboardCheck, PackagePlus, Truck } from 'lucide-react';
 
 const NAV_ITEMS = [
     {
         href: '/driver',
         label: 'Pemakaian Kendaraan',
         icon: Truck,
-        isActive: (url: string) => url === '/driver' || (url.startsWith('/driver/') && !url.startsWith('/driver/inspeksi')),
+        isActive: (url: string) =>
+            url === '/driver' || (url.startsWith('/driver/') && !url.startsWith('/driver/inspeksi') && !url.startsWith('/driver/pengajuan')),
     },
     {
         href: '/driver/inspeksi',
         label: 'Inspeksi Kendaraan',
         icon: ClipboardCheck,
         isActive: (url: string) => url.startsWith('/driver/inspeksi'),
+    },
+    {
+        href: '/driver/pengajuan',
+        label: 'Pengajuan Alat',
+        icon: PackagePlus,
+        isActive: (url: string) => url.startsWith('/driver/pengajuan'),
     },
     {
         href: '/lapor',

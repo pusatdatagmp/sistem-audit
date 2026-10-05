@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type Role } from '@/types';
+import { type BreadcrumbItem, type Kitchen, type Role } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
@@ -15,16 +15,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface UsersCreateProps {
     roles: Role[];
+    kitchens: Kitchen[];
 }
 
-export default function UsersCreate({ roles }: UsersCreateProps) {
+export default function UsersCreate({ roles, kitchens }: UsersCreateProps) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
         role_id: '',
+        kitchen_id: '',
     });
+
+    const isDriver = roles.find((role) => role.id === Number(data.role_id))?.code === 'driver';
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -89,6 +93,25 @@ export default function UsersCreate({ roles }: UsersCreateProps) {
                         </Select>
                         <InputError message={errors.role_id} />
                     </div>
+
+                    {isDriver && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="kitchen_id">Dapur</Label>
+                            <Select value={data.kitchen_id} onValueChange={(value) => setData('kitchen_id', value)}>
+                                <SelectTrigger id="kitchen_id">
+                                    <SelectValue placeholder="Pilih dapur" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                            {kitchen.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.kitchen_id} />
+                        </div>
+                    )}
 
                     <div className="flex gap-2">
                         <Button type="submit" disabled={processing}>

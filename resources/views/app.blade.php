@@ -6,6 +6,9 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        @php $appSettings = \App\Models\AppSetting::current(); @endphp
+        <link rel="icon" href="{{ $appSettings->logo_url ?? asset('favicon.ico') }}">
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
@@ -14,7 +17,7 @@
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
 
-        @php $themeCssVariables = \App\Models\AppSetting::current()->themeCssVariables(); @endphp
+        @php $themeCssVariables = $appSettings->themeCssVariables(); @endphp
         @if ($themeCssVariables)
             <style>
                 :root {

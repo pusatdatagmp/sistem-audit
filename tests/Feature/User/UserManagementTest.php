@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ComplaintTicket;
+use App\Models\Kitchen;
 use App\Models\Role;
 use App\Models\User;
 
@@ -234,4 +235,81 @@ test('a user with related activity records cannot be deleted', function () {
     $this->delete(route('users.destroy', $reporter))->assertSessionHasErrors('user');
 
     expect(User::query()->find($reporter->id))->not->toBeNull();
+});
+
+test('creating a driver requires a kitchen', function () {
+    $this->actingAs($this->admin);
+
+    $this->post(route('users.store'), [
+        'name' => 'Sopir Baru',
+        'email' => 'sopir.baru@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'role_id' => roleId(Role::CODE_DRIVER),
+    ])->assertSessionHasErrors('kitchen_id');
+
+    $kitchen = Kitchen::factory()->create();
+
+    $response = $this->post(route('users.store'), [
+        'name' => 'Sopir Baru',
+        'email' => 'sopir.baru@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'role_id' => roleId(Role::CODE_DRIVER),
+        'kitchen_id' => $kitchen->id,
+    ]);
+
+    $response->assertRedirect(route('users.index'))->assertSessionHasNoErrors();
+
+    $driver = User::query()->where('email', 'sopir.baru@example.com')->first();
+
+    expect($driver->kitchen_id)->toBe($kitchen->id);
+});
+
+test('changing a user role to driver requires a kitchen', function () {
+    $this->actingAs($this->admin);
+
+    $reporter = User::factory()->reporter()->create();
+
+    $this->put(route('users.update-role', $reporter), ['role_id' => roleId(Role::CODE_DRIVER)])
+        ->assertSessionHasErrors('kitchen_id');
+
+    $kitchen = Kitchen::factory()->create();
+
+    $this->put(route('users.update-role', $reporter), [
+        'role_id' => roleId(Role::CODE_DRIVER),
+        'kitchen_id' => $kitchen->id,
+    ])->assertSessionHasNoErrors();
+
+    expect($reporter->fresh()->kitchen_id)->toBe($kitchen->id);
+});
+
+test('moving a driver to a non-driver role clears their kitchen', function () {
+    $this->actingAs($this->admin);
+
+    $kitchen = Kitchen::factory()->create();
+    $driver = User::factory()->driver()->create(['kitchen_id' => $kitchen->id]);
+
+    $this->put(route('users.update-role', $driver), ['role_id' => roleId(Role::CODE_REPORTER)])
+        ->assertSessionHasNoErrors();
+
+    expect($driver->fresh()->kitchen_id)->toBeNull();
+});
+
+test('an admin can update a driver\'s kitchen from the edit page', function () {
+    $this->actingAs($this->admin);
+
+    $kitchenA = Kitchen::factory()->create();
+    $kitchenB = Kitchen::factory()->create();
+    $driver = User::factory()->driver()->create(['kitchen_id' => $kitchenA->id]);
+
+    $this->get(route('users.edit', $driver))->assertOk();
+
+    $this->put(route('users.update', $driver), [
+        'name' => $driver->name,
+        'email' => $driver->email,
+        'kitchen_id' => $kitchenB->id,
+    ])->assertSessionHasNoErrors();
+
+    expect($driver->fresh()->kitchen_id)->toBe($kitchenB->id);
 });

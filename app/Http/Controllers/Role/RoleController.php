@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Role;
 
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Role\StoreRoleRequest;
 use App\Http\Requests\Role\UpdateRoleRequest;
@@ -10,18 +11,43 @@ use App\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RoleController extends Controller
 {
-    public function index(): Response
+    use SortsQuery;
+
+    /**
+     * @var array<string, string>
+     */
+    private const SORTABLE = [
+        'name' => 'name',
+        'code' => 'code',
+        'permissions_count' => 'permissions_count',
+        'users_count' => 'users_count',
+    ];
+
+    public function index(Request $request): Response
     {
+        $query = Role::query()
+            ->withCount(['users', 'permissions'])
+            ->when($request->string('search')->toString(), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            });
+
+        $sortState = $this->applySort($query, $request, self::SORTABLE, fn ($q) => $q->orderBy('name'));
+
         return Inertia::render('roles/index', [
-            'roles' => Role::query()
-                ->withCount(['users', 'permissions'])
-                ->orderBy('name')
-                ->get(),
+            'roles' => $query->paginate(20)->withQueryString(),
+            'filters' => [
+                ...$request->only(['search']),
+                ...$sortState,
+            ],
         ]);
     }
 

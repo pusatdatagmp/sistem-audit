@@ -98,13 +98,12 @@ export default function CreateTicket({ kitchens, categoryOptions, priorityOption
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="kitchen_id">Dapur Terkait (opsional)</Label>
-                        <Select value={data.kitchen_id || 'none'} onValueChange={(value) => setData('kitchen_id', value === 'none' ? '' : value)}>
+                        <Label htmlFor="kitchen_id">Dapur Terkait</Label>
+                        <Select value={data.kitchen_id} onValueChange={(value) => setData('kitchen_id', value)}>
                             <SelectTrigger id="kitchen_id">
-                                <SelectValue placeholder="Tidak ada" />
+                                <SelectValue placeholder="Pilih dapur" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="none">Tidak ada</SelectItem>
                                 {kitchens.map((kitchen) => (
                                     <SelectItem key={kitchen.id} value={String(kitchen.id)}>
                                         {kitchen.name}
@@ -174,7 +173,7 @@ export default function CreateTicket({ kitchens, categoryOptions, priorityOption
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="photo">Foto Bukti (opsional)</Label>
+                        <Label htmlFor="photo">Foto Bukti</Label>
                         <Input
                             id="photo"
                             type="file"

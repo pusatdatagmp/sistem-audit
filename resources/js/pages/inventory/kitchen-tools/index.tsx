@@ -1,11 +1,15 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type KitchenTool, type Paginated } from '@/types';
+import { type BreadcrumbItem, type KitchenTool, type MasterDataOption, type Paginated } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,12 +17,49 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Alat Dapur', href: '/inventory/kitchen-tools' },
 ];
 
-interface KitchenToolsIndexProps {
-    kitchenTools: Paginated<KitchenTool>;
+interface KitchenToolsFilters {
+    category_option_id?: string;
+    is_active?: string;
+    search?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
 }
 
-export default function KitchenToolsIndex({ kitchenTools }: KitchenToolsIndexProps) {
+interface KitchenToolsIndexProps {
+    kitchenTools: Paginated<KitchenTool>;
+    categoryOptions: MasterDataOption[];
+    filters: KitchenToolsFilters;
+}
+
+export default function KitchenToolsIndex({ kitchenTools, categoryOptions, filters }: KitchenToolsIndexProps) {
     useFlashToast();
+
+    const [search, setSearch] = useState(filters.search ?? '');
+
+    function updateFilter(key: keyof KitchenToolsFilters, value: string) {
+        router.get(
+            route('inventory.kitchen-tools.index'),
+            { ...filters, [key]: value === 'all' ? undefined : value },
+            { preserveState: true, replace: true },
+        );
+    }
+
+    useEffect(() => {
+        if (search === (filters.search ?? '')) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            router.get(
+                route('inventory.kitchen-tools.index'),
+                { ...filters, search: search || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 400);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
 
     async function handleDelete(tool: KitchenTool) {
         const confirmation = await Swal.fire({
@@ -40,7 +81,7 @@ export default function KitchenToolsIndex({ kitchenTools }: KitchenToolsIndexPro
             <Head title="Alat Dapur" />
 
             <div className="flex flex-1 flex-col gap-4 p-4">
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-xl font-semibold">Alat Dapur</h1>
                     <div className="flex gap-2">
                         <Button variant="outline" asChild>
@@ -52,14 +93,43 @@ export default function KitchenToolsIndex({ kitchenTools }: KitchenToolsIndexPro
                     </div>
                 </div>
 
+                <div className="flex flex-wrap gap-2">
+                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama/kode alat..." className="w-56" />
+
+                    <Select value={filters.category_option_id ?? 'all'} onValueChange={(value) => updateFilter('category_option_id', value)}>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Semua Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Kategori</SelectItem>
+                            {categoryOptions.map((option) => (
+                                <SelectItem key={option.id} value={String(option.id)}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={filters.is_active ?? 'all'} onValueChange={(value) => updateFilter('is_active', value)}>
+                        <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Semua Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Status</SelectItem>
+                            <SelectItem value="1">Aktif</SelectItem>
+                            <SelectItem value="0">Nonaktif</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
                 <div className="rounded-xl border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Kode</TableHead>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Satuan</TableHead>
-                                <TableHead>Kategori</TableHead>
+                                <SortableHeader label="Kode" sortKey="code" routeName="inventory.kitchen-tools.index" filters={filters} />
+                                <SortableHeader label="Nama" sortKey="name" routeName="inventory.kitchen-tools.index" filters={filters} />
+                                <SortableHeader label="Satuan" sortKey="unit" routeName="inventory.kitchen-tools.index" filters={filters} />
+                                <SortableHeader label="Kategori" sortKey="category" routeName="inventory.kitchen-tools.index" filters={filters} />
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>

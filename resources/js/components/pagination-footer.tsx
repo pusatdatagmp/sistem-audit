@@ -20,7 +20,7 @@ export default function PaginationFooter<T>({ paginated }: PaginationFooterProps
                     {paginated.links.map((link, index) => (
                         <Button key={index} size="sm" variant={link.active ? 'default' : 'outline'} disabled={!link.url} asChild={!!link.url}>
                             {link.url ? (
-                                <Link href={link.url} preserveScroll dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <Link href={link.url} dangerouslySetInnerHTML={{ __html: link.label }} />
                             ) : (
                                 <span dangerouslySetInnerHTML={{ __html: link.label }} />
                             )}

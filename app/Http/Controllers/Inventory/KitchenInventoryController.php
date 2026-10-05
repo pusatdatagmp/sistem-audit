@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Exceptions\InsufficientStockException;
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\StockInRequest;
 use App\Http\Requests\Inventory\StockOpnameRequest;
@@ -20,27 +21,25 @@ use Inertia\Response;
 
 class KitchenInventoryController extends Controller
 {
+    use SortsQuery;
+
     public function __construct(private readonly StockMutationService $stockMutationService) {}
 
     /**
-     * @var array<string, array{0: string, 1: string}>
+     * @var array<string, string>
      */
-    private const SORT_OPTIONS = [
-        'kitchen_asc' => ['kitchens.name', 'asc'],
-        'kitchen_desc' => ['kitchens.name', 'desc'],
-        'tool_asc' => ['kitchen_tools.name', 'asc'],
-        'tool_desc' => ['kitchen_tools.name', 'desc'],
-        'total_asc' => ['total_quantity', 'asc'],
-        'total_desc' => ['total_quantity', 'desc'],
+    private const SORTABLE = [
+        'kitchen' => 'kitchens.name',
+        'tool' => 'kitchen_tools.name',
+        'good' => 'kitchen_inventories.quantity_good',
+        'needs_repair' => 'kitchen_inventories.quantity_needs_repair',
+        'damaged' => 'kitchen_inventories.quantity_damaged',
+        'total' => 'total_quantity',
     ];
 
     public function index(Request $request): Response
     {
-        $sort = $request->string('sort')->toString();
-        $sort = array_key_exists($sort, self::SORT_OPTIONS) ? $sort : 'kitchen_asc';
-        [$sortColumn, $sortDirection] = self::SORT_OPTIONS[$sort];
-
-        $inventories = KitchenInventory::query()
+        $query = KitchenInventory::query()
             ->select('kitchen_inventories.*')
             ->selectRaw('(quantity_good + quantity_needs_repair + quantity_damaged) as total_quantity')
             ->join('kitchens', 'kitchens.id', '=', 'kitchen_inventories.kitchen_id')
@@ -56,8 +55,11 @@ class KitchenInventoryController extends Controller
                         ->orWhere('kitchen_tools.code', 'like', "%{$search}%")
                         ->orWhere('kitchens.name', 'like', "%{$search}%");
                 });
-            })
-            ->orderBy($sortColumn, $sortDirection)
+            });
+
+        $sortState = $this->applySort($query, $request, self::SORTABLE, fn ($q) => $q->orderBy('kitchens.name'));
+
+        $inventories = $query
             ->orderBy('kitchen_inventories.id')
             ->paginate(20)
             ->withQueryString();
@@ -70,7 +72,7 @@ class KitchenInventoryController extends Controller
             'conditionOptions' => MasterDataOption::ofGroup('physical_condition')->active()->orderBy('sort_order')->get(['id', 'code', 'label']),
             'filters' => [
                 ...$request->only(['kitchen_id', 'category_option_id', 'search']),
-                'sort' => $sort,
+                ...$sortState,
             ],
         ]);
     }

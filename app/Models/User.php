@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'kitchen_id',
     ];
 
     /**
@@ -55,6 +56,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function kitchen(): BelongsTo
+    {
+        return $this->belongsTo(Kitchen::class);
+    }
+
     public function performedInventoryLogs(): HasMany
     {
         return $this->hasMany(InventoryLog::class, 'performed_by');
@@ -83,6 +89,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role?->code === Role::CODE_ADMIN;
+    }
+
+    public function isDriver(): bool
+    {
+        return $this->role?->code === Role::CODE_DRIVER;
     }
 
     public function hasPermission(string $code): bool

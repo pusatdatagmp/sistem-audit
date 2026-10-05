@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        $user = $request->user()?->loadMissing('role.permissions');
+        $user = $request->user()?->loadMissing(['role.permissions', 'kitchen']);
 
         return array_merge(parent::share($request), [
             ...parent::share($request),

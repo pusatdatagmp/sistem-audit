@@ -38,9 +38,9 @@ export default function DriverInspectionIndex({ inspections }: DriverInspectionI
         <DriverLayout>
             <Head title="Inspeksi Kendaraan Saya" />
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <h1 className="text-xl font-semibold">Inspeksi Kendaraan Saya</h1>
-                <Button asChild>
+                <Button asChild className="shrink-0">
                     <Link href={route('driver.inspections.create')}>Inspeksi Baru</Link>
                 </Button>
             </div>

@@ -35,7 +35,7 @@ export default function DriverInspectionShow({ inspection }: DriverInspectionSho
             <div className="flex flex-col gap-4">
                 <div className="rounded-xl border p-4">
                     <h1 className="text-xl font-semibold">{inspection.vehicle.plate_number}</h1>
-                    <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                         <div>
                             <dt className="text-muted-foreground">Tanggal Inspeksi</dt>
                             <dd>{new Date(inspection.inspected_at).toLocaleString('id-ID')}</dd>

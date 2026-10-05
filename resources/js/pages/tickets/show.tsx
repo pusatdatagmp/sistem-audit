@@ -99,7 +99,7 @@ export default function ShowTicket({ ticket, users }: ShowTicketProps) {
                             </a>
                         )}
 
-                        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                             <div>
                                 <dt className="text-muted-foreground">Kategori</dt>
                                 <dd>{ticket.category.label}</dd>

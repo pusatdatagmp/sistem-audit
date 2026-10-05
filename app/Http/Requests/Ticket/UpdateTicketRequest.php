@@ -15,7 +15,7 @@ class UpdateTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kitchen_id' => ['nullable', 'integer', 'exists:kitchens,id'],
+            'kitchen_id' => ['required', 'integer', 'exists:kitchens,id'],
             'category_option_id' => ['required', 'integer', 'exists:master_data_options,id'],
             'priority_option_id' => ['required', 'integer', 'exists:master_data_options,id'],
             'related_kitchen_tool_id' => ['nullable', 'integer', 'exists:kitchen_tools,id'],

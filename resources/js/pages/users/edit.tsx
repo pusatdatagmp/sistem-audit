@@ -2,8 +2,9 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Kitchen } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
@@ -16,18 +17,22 @@ interface EditableUser {
     id: number;
     name: string;
     email: string;
+    kitchen_id: number | null;
+    is_driver: boolean;
 }
 
 interface UsersEditProps {
     user: EditableUser;
+    kitchens: Kitchen[];
 }
 
-export default function UsersEdit({ user }: UsersEditProps) {
+export default function UsersEdit({ user, kitchens }: UsersEditProps) {
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         password: '',
         password_confirmation: '',
+        kitchen_id: user.kitchen_id ? String(user.kitchen_id) : '',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -79,6 +84,25 @@ export default function UsersEdit({ user }: UsersEditProps) {
                     </div>
 
                     <p className="text-muted-foreground text-xs">Untuk mengubah role pengguna, gunakan pilihan role di halaman daftar pengguna.</p>
+
+                    {user.is_driver && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="kitchen_id">Dapur</Label>
+                            <Select value={data.kitchen_id} onValueChange={(value) => setData('kitchen_id', value)}>
+                                <SelectTrigger id="kitchen_id">
+                                    <SelectValue placeholder="Pilih dapur" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kitchens.map((kitchen) => (
+                                        <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                            {kitchen.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.kitchen_id} />
+                        </div>
+                    )}
 
                     <div className="flex gap-2">
                         <Button type="submit" disabled={processing}>

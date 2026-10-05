@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ComplaintTicket;
+use App\Models\Kitchen;
 use App\Models\MasterDataOption;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
@@ -17,16 +18,21 @@ test('guests are redirected to the login page', function () {
 });
 
 test('a user can create a ticket and gets an auto-generated ticket number', function () {
+    Storage::fake('public');
+
     $this->actingAs($this->user);
 
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $response = $this->post(route('tickets.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Kompor mati total',
         'description' => 'Kompor di dapur pusat tidak menyala sejak pagi.',
+        'photo' => UploadedFile::fake()->image('bukti.jpg'),
     ]);
 
     $ticket = ComplaintTicket::first();
@@ -38,15 +44,25 @@ test('a user can create a ticket and gets an auto-generated ticket number', func
         ->and($ticket->reporter_id)->toBe($this->user->id);
 });
 
-test('a ticket can optionally include a photo', function () {
+test('a ticket requires a photo and stores it when provided', function () {
     Storage::fake('public');
 
     $this->actingAs($this->user);
 
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $this->post(route('tickets.store'), [
+        'kitchen_id' => $kitchen->id,
+        'category_option_id' => $category->id,
+        'priority_option_id' => $priority->id,
+        'subject' => 'Kompor mati total',
+        'description' => 'Kompor di dapur pusat tidak menyala sejak pagi.',
+    ])->assertSessionHasErrors('photo');
+
+    $this->post(route('tickets.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Kompor mati total',
@@ -100,10 +116,12 @@ test('a ticket can be viewed and updated', function () {
     $ticket = ComplaintTicket::factory()->create(['subject' => 'Judul lama']);
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $this->get(route('tickets.show', $ticket))->assertOk();
 
     $this->put(route('tickets.update', $ticket), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Judul baru',

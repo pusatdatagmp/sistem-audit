@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ticket;
 
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
@@ -20,11 +21,13 @@ use Inertia\Response;
 
 class TicketController extends Controller
 {
+    use SortsQuery;
+
     public function __construct(private readonly TicketService $ticketService) {}
 
     public function index(Request $request): Response
     {
-        $tickets = ComplaintTicket::query()
+        $query = ComplaintTicket::query()
             ->with(['reporter', 'kitchen', 'category', 'priority', 'assignedTo'])
             ->when($request->string('status')->toString(), fn ($query, $status) => $query->where('status', $status))
             ->when($request->integer('priority_option_id'), fn ($query, $id) => $query->where('priority_option_id', $id))
@@ -34,17 +37,34 @@ class TicketController extends Controller
                     $q->where('ticket_number', 'like', "%{$search}%")
                         ->orWhere('subject', 'like', "%{$search}%");
                 });
-            })
-            ->orderByRaw("CASE WHEN status = 'open' THEN 0 WHEN status = 'in_progress' THEN 1 ELSE 2 END")
-            ->orderByDesc('created_at')
-            ->paginate(20)
-            ->withQueryString();
+            });
+
+        $sortable = [
+            'ticket_number' => 'complaint_tickets.ticket_number',
+            'subject' => 'complaint_tickets.subject',
+            'category' => fn () => MasterDataOption::query()->select('label')->whereColumn('id', 'complaint_tickets.category_option_id'),
+            'priority' => fn () => MasterDataOption::query()->select('label')->whereColumn('id', 'complaint_tickets.priority_option_id'),
+            'reporter' => fn () => User::query()->select('name')->whereColumn('id', 'complaint_tickets.reporter_id'),
+            'status' => 'complaint_tickets.status',
+        ];
+
+        $sortState = $this->applySort(
+            $query,
+            $request,
+            $sortable,
+            fn ($q) => $q->orderByRaw("CASE WHEN status = 'open' THEN 0 WHEN status = 'in_progress' THEN 1 ELSE 2 END")->orderByDesc('created_at'),
+        );
+
+        $tickets = $query->paginate(20)->withQueryString();
 
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
             'categoryOptions' => MasterDataOption::ofGroup('complaint_category')->active()->orderBy('sort_order')->get(['id', 'code', 'label']),
             'priorityOptions' => MasterDataOption::ofGroup('ticket_priority')->active()->orderBy('sort_order')->get(['id', 'code', 'label']),
-            'filters' => $request->only(['status', 'priority_option_id', 'category_option_id', 'search']),
+            'filters' => [
+                ...$request->only(['status', 'priority_option_id', 'category_option_id', 'search']),
+                ...$sortState,
+            ],
         ]);
     }
 

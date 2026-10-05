@@ -2,21 +2,51 @@
 
 namespace App\Http\Controllers\MasterData;
 
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MasterData\StoreKitchenRequest;
 use App\Http\Requests\MasterData\UpdateKitchenRequest;
 use App\Models\Kitchen;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class KitchenController extends Controller
 {
-    public function index(): Response
+    use SortsQuery;
+
+    /**
+     * @var array<string, string>
+     */
+    private const SORTABLE = [
+        'code' => 'code',
+        'name' => 'name',
+        'pic_name' => 'pic_name',
+        'phone' => 'phone',
+    ];
+
+    public function index(Request $request): Response
     {
+        $query = Kitchen::query()
+            ->when($request->has('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+            ->when($request->string('search')->toString(), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhere('pic_name', 'like', "%{$search}%");
+                });
+            });
+
+        $sortState = $this->applySort($query, $request, self::SORTABLE, fn ($q) => $q->orderBy('name'));
+
         return Inertia::render('master-data/kitchens/index', [
-            'kitchens' => Kitchen::query()->orderBy('name')->paginate(20),
+            'kitchens' => $query->paginate(20)->withQueryString(),
+            'filters' => [
+                ...$request->only(['is_active', 'search']),
+                ...$sortState,
+            ],
         ]);
     }
 

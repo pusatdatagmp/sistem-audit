@@ -67,7 +67,7 @@ export default function CreateInspection({ vehicles, components, conditionOption
 
             <div className="max-w-3xl p-4">
                 <form onSubmit={submit} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <Label htmlFor="vehicle_id">Kendaraan</Label>
                             <Select value={data.vehicle_id} onValueChange={(value) => setData('vehicle_id', value)}>

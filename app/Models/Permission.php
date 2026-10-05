@@ -16,6 +16,8 @@ class Permission extends Model
 
     public const INVENTORY_MANAGE = 'inventory.manage';
 
+    public const EQUIPMENT_REQUESTS_MANAGE = 'equipment-requests.manage';
+
     public const MASTER_DATA_MANAGE = 'master-data.manage';
 
     public const VEHICLES_MANAGE = 'vehicles.manage';
@@ -36,6 +38,7 @@ class Permission extends Model
     public const CATALOG = [
         self::DASHBOARD_VIEW => ['name' => 'Lihat Dashboard', 'group' => 'Umum'],
         self::INVENTORY_MANAGE => ['name' => 'Kelola Inventaris Dapur', 'group' => 'Inventaris'],
+        self::EQUIPMENT_REQUESTS_MANAGE => ['name' => 'Kelola Pengajuan Alat Dapur', 'group' => 'Inventaris'],
         self::MASTER_DATA_MANAGE => ['name' => 'Kelola Master Data', 'group' => 'Master Data'],
         self::VEHICLES_MANAGE => ['name' => 'Kelola Kendaraan & Perawatan', 'group' => 'Kendaraan'],
         self::TICKETS_MANAGE => ['name' => 'Kelola Tiket Pengaduan', 'group' => 'Pengaduan'],

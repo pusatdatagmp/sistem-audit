@@ -1,4 +1,5 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,7 +24,7 @@ interface LogsPageProps {
     logs: Paginated<InventoryLog>;
     kitchens: Kitchen[];
     kitchenTools: KitchenTool[];
-    filters: { kitchen_id?: string; kitchen_tool_id?: string; type?: string };
+    filters: { kitchen_id?: string; kitchen_tool_id?: string; type?: string; sort?: string | null; direction?: 'asc' | 'desc' | null };
 }
 
 export default function InventoryLogsIndex({ logs, kitchens, kitchenTools, filters }: LogsPageProps) {
@@ -84,14 +85,26 @@ export default function InventoryLogsIndex({ logs, kitchens, kitchenTools, filte
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Tanggal</TableHead>
-                                <TableHead>Dapur</TableHead>
-                                <TableHead>Alat</TableHead>
+                                <SortableHeader label="Tanggal" sortKey="created_at" routeName="inventory.logs" filters={filters} />
+                                <SortableHeader label="Dapur" sortKey="kitchen" routeName="inventory.logs" filters={filters} />
+                                <SortableHeader label="Alat" sortKey="tool" routeName="inventory.logs" filters={filters} />
                                 <TableHead>Jenis</TableHead>
                                 <TableHead>Kondisi</TableHead>
-                                <TableHead className="text-right">Perubahan</TableHead>
-                                <TableHead className="text-right">Stok Sesudah</TableHead>
-                                <TableHead>Oleh</TableHead>
+                                <SortableHeader
+                                    label="Perubahan"
+                                    sortKey="quantity_change"
+                                    routeName="inventory.logs"
+                                    filters={filters}
+                                    className="text-right"
+                                />
+                                <SortableHeader
+                                    label="Stok Sesudah"
+                                    sortKey="stock_after"
+                                    routeName="inventory.logs"
+                                    filters={filters}
+                                    className="text-right"
+                                />
+                                <SortableHeader label="Oleh" sortKey="performed_by" routeName="inventory.logs" filters={filters} />
                                 <TableHead>Catatan</TableHead>
                             </TableRow>
                         </TableHeader>

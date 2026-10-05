@@ -60,6 +60,8 @@ export interface User {
     name: string;
     email: string;
     role: Role;
+    kitchen_id?: number | null;
+    kitchen?: Kitchen | null;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
@@ -238,4 +240,24 @@ export interface ComplaintTicket {
     related_vehicle: Vehicle | null;
     assigned_to: User | null;
     updates?: ComplaintTicketUpdate[];
+}
+
+export interface EquipmentRequest {
+    id: number;
+    kitchen_id: number;
+    kitchen_tool_id: number | null;
+    new_tool_name: string | null;
+    new_tool_unit: string | null;
+    new_tool_category_option_id: number | null;
+    quantity: number;
+    reason: string;
+    status: 'pending' | 'approved' | 'rejected';
+    review_note: string | null;
+    reviewed_at: string | null;
+    created_at: string;
+    kitchen: Kitchen;
+    kitchen_tool: KitchenTool | null;
+    new_tool_category: MasterDataOption | null;
+    requested_by: User;
+    reviewed_by: User | null;
 }

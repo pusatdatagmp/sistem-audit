@@ -1,4 +1,5 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type MasterDataOption, type Paginated, type Vehicle } from '@/types';
+import { type BreadcrumbItem, type Kitchen, type MasterDataOption, type Paginated, type Vehicle } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 
 import { useEffect, useState } from 'react';
@@ -14,19 +15,29 @@ import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Kendaraan', href: '/vehicles' }];
 
+interface VehiclesFilters {
+    status_option_id?: string;
+    vehicle_type_option_id?: string;
+    kitchen_id?: string;
+    search?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
+}
+
 interface VehiclesIndexProps {
     vehicles: Paginated<Vehicle>;
     typeOptions: MasterDataOption[];
     statusOptions: MasterDataOption[];
-    filters: { status_option_id?: string; vehicle_type_option_id?: string; search?: string };
+    kitchens: Kitchen[];
+    filters: VehiclesFilters;
 }
 
-export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, filters }: VehiclesIndexProps) {
+export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, kitchens, filters }: VehiclesIndexProps) {
     useFlashToast();
 
     const [search, setSearch] = useState(filters.search ?? '');
 
-    function updateFilter(key: 'status_option_id' | 'vehicle_type_option_id', value: string) {
+    function updateFilter(key: keyof VehiclesFilters, value: string) {
         router.get(route('vehicles.index'), { ...filters, [key]: value === 'all' ? undefined : value }, { preserveState: true, replace: true });
     }
 
@@ -94,6 +105,20 @@ export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, fi
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        <Select value={filters.kitchen_id ?? 'all'} onValueChange={(value) => updateFilter('kitchen_id', value)}>
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Semua Dapur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Dapur</SelectItem>
+                                {kitchens.map((kitchen) => (
+                                    <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                        {kitchen.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -107,11 +132,11 @@ export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, fi
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Plat Nomor</TableHead>
-                                <TableHead>Jenis</TableHead>
-                                <TableHead>Merek/Model</TableHead>
-                                <TableHead>Dapur Home Base</TableHead>
-                                <TableHead>Status</TableHead>
+                                <SortableHeader label="Plat Nomor" sortKey="plate_number" routeName="vehicles.index" filters={filters} />
+                                <SortableHeader label="Jenis" sortKey="type" routeName="vehicles.index" filters={filters} />
+                                <SortableHeader label="Merek/Model" sortKey="brand" routeName="vehicles.index" filters={filters} />
+                                <SortableHeader label="Dapur Home Base" sortKey="kitchen" routeName="vehicles.index" filters={filters} />
+                                <SortableHeader label="Status" sortKey="status" routeName="vehicles.index" filters={filters} />
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>

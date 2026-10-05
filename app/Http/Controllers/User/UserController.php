@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\UpdateUserRoleRequest;
+use App\Models\Kitchen;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -18,24 +20,40 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
+    use SortsQuery;
+
     public function index(Request $request): Response
     {
-        $users = User::query()
-            ->with('role:id,code,name')
+        $query = User::query()
+            ->with(['role:id,code,name', 'kitchen:id,name'])
+            ->when($request->integer('role_id'), fn ($query, $roleId) => $query->where('role_id', $roleId))
+            ->when($request->integer('kitchen_id'), fn ($query, $kitchenId) => $query->where('kitchen_id', $kitchenId))
             ->when($request->string('search')->toString(), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
-            })
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
+            });
+
+        $sortable = [
+            'name' => 'users.name',
+            'email' => 'users.email',
+            'role' => fn () => Role::query()->select('name')->whereColumn('id', 'users.role_id'),
+            'kitchen' => fn () => Kitchen::query()->select('name')->whereColumn('id', 'users.kitchen_id'),
+        ];
+
+        $sortState = $this->applySort($query, $request, $sortable, fn ($q) => $q->orderBy('users.name'));
+
+        $users = $query->paginate(20)->withQueryString();
 
         return Inertia::render('users/index', [
             'users' => $users,
             'roles' => Role::query()->orderBy('name')->get(['id', 'name', 'code']),
-            'filters' => $request->only(['search']),
+            'kitchens' => Kitchen::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                ...$request->only(['search', 'role_id', 'kitchen_id']),
+                ...$sortState,
+            ],
         ]);
     }
 
@@ -43,6 +61,7 @@ class UserController extends Controller
     {
         return Inertia::render('users/create', [
             'roles' => Role::query()->orderBy('name')->get(['id', 'name', 'code']),
+            'kitchens' => Kitchen::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -53,6 +72,7 @@ class UserController extends Controller
             'email' => $request->validated('email'),
             'password' => Hash::make($request->validated('password')),
             'role_id' => $request->validated('role_id'),
+            'kitchen_id' => $request->validated('kitchen_id'),
         ]);
 
         // Accounts created here are trusted by an admin, so skip the email
@@ -65,7 +85,8 @@ class UserController extends Controller
     public function edit(User $user): Response
     {
         return Inertia::render('users/edit', [
-            'user' => $user->only(['id', 'name', 'email']),
+            'user' => $user->only(['id', 'name', 'email', 'kitchen_id']) + ['is_driver' => $user->isDriver()],
+            'kitchens' => Kitchen::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -74,6 +95,7 @@ class UserController extends Controller
         $user->update([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
+            'kitchen_id' => $user->isDriver() ? $request->validated('kitchen_id') : null,
         ]);
 
         if ($password = $request->validated('password')) {
@@ -97,7 +119,10 @@ class UserController extends Controller
             ]);
         }
 
-        $user->update(['role_id' => $newRole->id]);
+        $user->update([
+            'role_id' => $newRole->id,
+            'kitchen_id' => $newRole->code === Role::CODE_DRIVER ? $request->validated('kitchen_id') : null,
+        ]);
 
         return back()->with('success', "Role {$user->name} berhasil diperbarui.");
     }

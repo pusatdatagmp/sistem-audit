@@ -19,6 +19,7 @@ import {
     Flag,
     History,
     LayoutGrid,
+    PackagePlus,
     Paintbrush,
     ShieldCheck,
     Tags,
@@ -55,6 +56,12 @@ const inventoryNavItems: PermissionedNavItem[] = [
         url: '/master-data/kitchens',
         icon: Warehouse,
         permission: 'master-data.manage',
+    },
+    {
+        title: 'Pengajuan Alat',
+        url: '/equipment-requests',
+        icon: PackagePlus,
+        permission: 'equipment-requests.manage',
     },
 ];
 

@@ -1,4 +1,6 @@
 import InputError from '@/components/input-error';
+import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -7,9 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type MasterDataGroup } from '@/types';
+import { type BreadcrumbItem, type MasterDataGroup, type Paginated } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,14 +19,39 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Kategori & Opsi', href: '/master-data/option-groups' },
 ];
 
-interface OptionGroupsIndexProps {
-    groups: MasterDataGroup[];
+interface OptionGroupsFilters {
+    search?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
 }
 
-export default function OptionGroupsIndex({ groups }: OptionGroupsIndexProps) {
+interface OptionGroupsIndexProps {
+    groups: Paginated<MasterDataGroup>;
+    filters: OptionGroupsFilters;
+}
+
+export default function OptionGroupsIndex({ groups, filters }: OptionGroupsIndexProps) {
     useFlashToast();
 
     const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState(filters.search ?? '');
+
+    useEffect(() => {
+        if (search === (filters.search ?? '')) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            router.get(
+                route('master-data.option-groups.index'),
+                { ...filters, search: search || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 400);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
     const { data, setData, post, processing, errors, reset } = useForm({
         code: '',
         name: '',
@@ -61,8 +88,8 @@ export default function OptionGroupsIndex({ groups }: OptionGroupsIndexProps) {
             <Head title="Kategori & Opsi" />
 
             <div className="flex flex-1 flex-col gap-4 p-4">
-                <div className="flex justify-between">
-                    <div>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
                         <h1 className="text-xl font-semibold">Kategori & Opsi</h1>
                         <p className="text-sm text-muted-foreground">
                             Kelola pilihan dinamis yang dipakai di seluruh sistem (kategori alat, jenis kendaraan, prioritas tiket, dsb).
@@ -107,19 +134,27 @@ export default function OptionGroupsIndex({ groups }: OptionGroupsIndexProps) {
                     </Dialog>
                 </div>
 
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama/kode grup..." className="w-64" />
+
                 <div className="rounded-xl border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Kode</TableHead>
-                                <TableHead>Nama</TableHead>
-                                <TableHead className="text-right">Jumlah Opsi</TableHead>
+                                <SortableHeader label="Kode" sortKey="code" routeName="master-data.option-groups.index" filters={filters} />
+                                <SortableHeader label="Nama" sortKey="name" routeName="master-data.option-groups.index" filters={filters} />
+                                <SortableHeader
+                                    label="Jumlah Opsi"
+                                    sortKey="options_count"
+                                    routeName="master-data.option-groups.index"
+                                    filters={filters}
+                                    className="text-right"
+                                />
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {groups.map((group) => (
+                            {groups.data.map((group) => (
                                 <TableRow key={group.id}>
                                     <TableCell className="font-mono text-xs">{group.code}</TableCell>
                                     <TableCell>{group.name}</TableCell>
@@ -148,6 +183,8 @@ export default function OptionGroupsIndex({ groups }: OptionGroupsIndexProps) {
                         </TableBody>
                     </Table>
                 </div>
+
+                <PaginationFooter paginated={groups} />
             </div>
         </AppLayout>
     );

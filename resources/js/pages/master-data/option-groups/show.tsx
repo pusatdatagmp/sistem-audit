@@ -1,17 +1,29 @@
+import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
 import OptionFormDialog from '@/pages/master-data/option-groups/components/option-form-dialog';
-import { type BreadcrumbItem, type MasterDataGroup, type MasterDataOption } from '@/types';
+import { type BreadcrumbItem, type MasterDataGroup, type MasterDataOption, type Paginated } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
+
+interface OptionGroupShowFilters {
+    is_active?: string;
+    search?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
+}
 
 interface OptionGroupShowProps {
     group: MasterDataGroup;
-    options: MasterDataOption[];
+    options: Paginated<MasterDataOption>;
+    filters: OptionGroupShowFilters;
 }
 
 const PARENT_BREADCRUMBS: Record<string, BreadcrumbItem[]> = {
@@ -33,7 +45,7 @@ const PARENT_BREADCRUMBS: Record<string, BreadcrumbItem[]> = {
     ticket_priority: [{ title: 'Tiket Pengaduan', href: '/tickets' }],
 };
 
-export default function OptionGroupShow({ group, options }: OptionGroupShowProps) {
+export default function OptionGroupShow({ group, options, filters }: OptionGroupShowProps) {
     useFlashToast();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -46,6 +58,32 @@ export default function OptionGroupShow({ group, options }: OptionGroupShowProps
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [activeOption, setActiveOption] = useState<MasterDataOption | null>(null);
+    const [search, setSearch] = useState(filters.search ?? '');
+
+    function updateFilter(key: keyof OptionGroupShowFilters, value: string) {
+        router.get(
+            route('master-data.option-groups.show', group.code),
+            { ...filters, [key]: value === 'all' ? undefined : value },
+            { preserveState: true, replace: true },
+        );
+    }
+
+    useEffect(() => {
+        if (search === (filters.search ?? '')) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            router.get(
+                route('master-data.option-groups.show', group.code),
+                { ...filters, search: search || undefined },
+                { preserveState: true, replace: true },
+            );
+        }, 400);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
 
     function openCreate() {
         setActiveOption(null);
@@ -77,29 +115,64 @@ export default function OptionGroupShow({ group, options }: OptionGroupShowProps
             <Head title={`Kelola Opsi - ${group.name}`} />
 
             <div className="flex flex-1 flex-col gap-4 p-4">
-                <div className="flex justify-between">
-                    <div>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
                         <h1 className="text-xl font-semibold">{group.name}</h1>
                         {group.description && <p className="text-sm text-muted-foreground">{group.description}</p>}
                         <p className="mt-1 font-mono text-xs text-muted-foreground">{group.code}</p>
                     </div>
-                    <Button onClick={openCreate}>Tambah Opsi</Button>
+                    <Button onClick={openCreate} className="shrink-0">
+                        Tambah Opsi
+                    </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari label/kode..." className="w-56" />
+
+                    <Select value={filters.is_active ?? 'all'} onValueChange={(value) => updateFilter('is_active', value)}>
+                        <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Semua Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Status</SelectItem>
+                            <SelectItem value="1">Aktif</SelectItem>
+                            <SelectItem value="0">Nonaktif</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <div className="rounded-xl border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Urutan</TableHead>
-                                <TableHead>Label</TableHead>
-                                <TableHead>Kode</TableHead>
+                                <SortableHeader
+                                    label="Urutan"
+                                    sortKey="sort_order"
+                                    routeName="master-data.option-groups.show"
+                                    routeParams={{ group: group.code }}
+                                    filters={filters}
+                                />
+                                <SortableHeader
+                                    label="Label"
+                                    sortKey="label"
+                                    routeName="master-data.option-groups.show"
+                                    routeParams={{ group: group.code }}
+                                    filters={filters}
+                                />
+                                <SortableHeader
+                                    label="Kode"
+                                    sortKey="code"
+                                    routeName="master-data.option-groups.show"
+                                    routeParams={{ group: group.code }}
+                                    filters={filters}
+                                />
                                 <TableHead>Deskripsi</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {options.map((option) => (
+                            {options.data.map((option) => (
                                 <TableRow key={option.id}>
                                     <TableCell>{option.sort_order}</TableCell>
                                     <TableCell>{option.label}</TableCell>
@@ -125,6 +198,8 @@ export default function OptionGroupShow({ group, options }: OptionGroupShowProps
                         </TableBody>
                     </Table>
                 </div>
+
+                <PaginationFooter paginated={options} />
             </div>
 
             <OptionFormDialog group={group} option={activeOption} open={dialogOpen} onOpenChange={setDialogOpen} />

@@ -17,9 +17,9 @@ export default function DriverIndex({ usageLogs }: DriverIndexProps) {
         <DriverLayout>
             <Head title="Riwayat Pemakaian Saya" />
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <h1 className="text-xl font-semibold">Riwayat Pemakaian Saya</h1>
-                <Button asChild>
+                <Button asChild className="shrink-0">
                     <Link href={route('driver.create')}>Catat Pemakaian</Link>
                 </Button>
             </div>

@@ -1,10 +1,11 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type Paginated, type User, type Vehicle, type VehicleUsageLog } from '@/types';
+import { type BreadcrumbItem, type Kitchen, type Paginated, type User, type Vehicle, type VehicleUsageLog } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
@@ -13,17 +14,26 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Riwayat Pemakaian', href: '/vehicles/usage-logs' },
 ];
 
+interface UsageLogsFilters {
+    vehicle_id?: string;
+    driver_id?: string;
+    kitchen_id?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
+}
+
 interface UsageLogsIndexProps {
     usageLogs: Paginated<VehicleUsageLog>;
     vehicles: Vehicle[];
     drivers: User[];
-    filters: { vehicle_id?: string; driver_id?: string };
+    kitchens: Kitchen[];
+    filters: UsageLogsFilters;
 }
 
-export default function UsageLogsIndex({ usageLogs, vehicles, drivers, filters }: UsageLogsIndexProps) {
+export default function UsageLogsIndex({ usageLogs, vehicles, drivers, kitchens, filters }: UsageLogsIndexProps) {
     useFlashToast();
 
-    function updateFilter(key: 'vehicle_id' | 'driver_id', value: string) {
+    function updateFilter(key: keyof UsageLogsFilters, value: string) {
         router.get(
             route('vehicles.usage-logs.index'),
             { ...filters, [key]: value === 'all' ? undefined : value },
@@ -80,6 +90,20 @@ export default function UsageLogsIndex({ usageLogs, vehicles, drivers, filters }
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        <Select value={filters.kitchen_id ?? 'all'} onValueChange={(value) => updateFilter('kitchen_id', value)}>
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Semua Dapur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Dapur</SelectItem>
+                                {kitchens.map((kitchen) => (
+                                    <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                        {kitchen.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <Button asChild>
@@ -91,11 +115,11 @@ export default function UsageLogsIndex({ usageLogs, vehicles, drivers, filters }
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Tanggal</TableHead>
-                                <TableHead>Kendaraan</TableHead>
-                                <TableHead>Sopir</TableHead>
-                                <TableHead>Dapur</TableHead>
-                                <TableHead>Tujuan</TableHead>
+                                <SortableHeader label="Tanggal" sortKey="usage_date" routeName="vehicles.usage-logs.index" filters={filters} />
+                                <SortableHeader label="Kendaraan" sortKey="vehicle" routeName="vehicles.usage-logs.index" filters={filters} />
+                                <SortableHeader label="Sopir" sortKey="driver" routeName="vehicles.usage-logs.index" filters={filters} />
+                                <SortableHeader label="Dapur" sortKey="kitchen" routeName="vehicles.usage-logs.index" filters={filters} />
+                                <SortableHeader label="Tujuan" sortKey="destination" routeName="vehicles.usage-logs.index" filters={filters} />
                                 <TableHead className="text-right">Jarak (km)</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>

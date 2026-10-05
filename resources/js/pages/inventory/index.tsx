@@ -1,6 +1,8 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,24 +14,17 @@ import TransferDialog from '@/pages/inventory/components/transfer-dialog';
 import { type BreadcrumbItem, type Kitchen, type KitchenInventory, type KitchenTool, type MasterDataOption, type Paginated } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { MoreHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Inventaris Dapur', href: '/inventory' }];
-
-const SORT_OPTIONS = [
-    { value: 'kitchen_asc', label: 'Dapur (A-Z)' },
-    { value: 'kitchen_desc', label: 'Dapur (Z-A)' },
-    { value: 'tool_asc', label: 'Nama Alat (A-Z)' },
-    { value: 'tool_desc', label: 'Nama Alat (Z-A)' },
-    { value: 'total_desc', label: 'Total Stok (Tertinggi)' },
-    { value: 'total_asc', label: 'Total Stok (Terendah)' },
-];
 
 interface InventoryFilters {
     kitchen_id?: string;
     category_option_id?: string;
     search?: string;
-    sort?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
 }
 
 interface InventoryIndexProps {
@@ -124,19 +119,6 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                                 ))}
                             </SelectContent>
                         </Select>
-
-                        <Select value={filters.sort ?? 'kitchen_asc'} onValueChange={(value) => updateFilter('sort', value)}>
-                            <SelectTrigger className="w-56">
-                                <SelectValue placeholder="Urutkan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {SORT_OPTIONS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </div>
 
                     <div className="flex gap-2">
@@ -153,13 +135,31 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Dapur</TableHead>
-                                <TableHead>Alat</TableHead>
+                                <SortableHeader label="Dapur" sortKey="kitchen" routeName="inventory.index" filters={filters} />
+                                <SortableHeader label="Alat" sortKey="tool" routeName="inventory.index" filters={filters} />
                                 <TableHead>Kategori</TableHead>
-                                <TableHead className="text-right">Baik</TableHead>
-                                <TableHead className="text-right">Perlu Perbaikan</TableHead>
-                                <TableHead className="text-right">Rusak Berat</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
+                                <SortableHeader
+                                    label="Baik"
+                                    sortKey="good"
+                                    routeName="inventory.index"
+                                    filters={filters}
+                                    className="text-right"
+                                />
+                                <SortableHeader
+                                    label="Perlu Perbaikan"
+                                    sortKey="needs_repair"
+                                    routeName="inventory.index"
+                                    filters={filters}
+                                    className="text-right"
+                                />
+                                <SortableHeader
+                                    label="Rusak Berat"
+                                    sortKey="damaged"
+                                    routeName="inventory.index"
+                                    filters={filters}
+                                    className="text-right"
+                                />
+                                <SortableHeader label="Total" sortKey="total" routeName="inventory.index" filters={filters} className="text-right" />
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -186,20 +186,20 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                                             {inventory.quantity_good + inventory.quantity_needs_repair + inventory.quantity_damaged}
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex justify-end gap-1">
-                                                <Button size="sm" variant="outline" onClick={() => openDialog('in', inventory)}>
-                                                    Masuk
-                                                </Button>
-                                                <Button size="sm" variant="outline" onClick={() => openDialog('out', inventory)}>
-                                                    Keluar
-                                                </Button>
-                                                <Button size="sm" variant="outline" onClick={() => openDialog('transfer', inventory)}>
-                                                    Transfer
-                                                </Button>
-                                                <Button className='bg-primary text-white cursor-pointer duration-300' size="sm" variant="outline" onClick={() => openDialog('opname', inventory)}>
-                                                    Opname
-                                                </Button>
-                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button size="sm" variant="outline">
+                                                        Aksi
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => openDialog('in', inventory)}>Masuk</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDialog('out', inventory)}>Keluar</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDialog('transfer', inventory)}>Transfer</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDialog('opname', inventory)}>Opname</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </motion.tr>
                                 ))}

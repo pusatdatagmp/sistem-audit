@@ -35,15 +35,17 @@ export default function PortalShow({ ticket }: PortalShowProps) {
 
             <div className="space-y-4">
                 <div className="bg-background rounded-xl border p-4">
-                    <div className="flex items-start justify-between">
-                        <div>
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
                             <p className="text-muted-foreground font-mono text-xs">{ticket.ticket_number}</p>
-                            <h1 className="text-xl font-semibold">{ticket.subject}</h1>
+                            <h1 className="text-xl font-semibold break-words">{ticket.subject}</h1>
                         </div>
-                        <Badge variant={statusBadgeVariant(ticket.status)}>{STATUS_LABELS[ticket.status]}</Badge>
+                        <Badge variant={statusBadgeVariant(ticket.status)} className="shrink-0">
+                            {STATUS_LABELS[ticket.status]}
+                        </Badge>
                     </div>
 
-                    <p className="mt-4 text-sm whitespace-pre-wrap">{ticket.description}</p>
+                    <p className="mt-4 text-sm whitespace-pre-wrap break-words">{ticket.description}</p>
 
                     {ticket.photo_url && (
                         <a href={ticket.photo_url} target="_blank" rel="noopener noreferrer" className="mt-4 block w-fit">
@@ -51,7 +53,7 @@ export default function PortalShow({ ticket }: PortalShowProps) {
                         </a>
                     )}
 
-                    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                         <div>
                             <dt className="text-muted-foreground">Kategori</dt>
                             <dd>{ticket.category.label}</dd>
@@ -77,11 +79,11 @@ export default function PortalShow({ ticket }: PortalShowProps) {
                         {ticket.updates && ticket.updates.length > 0 ? (
                             ticket.updates.map((update) => (
                                 <div key={update.id} className="border-muted border-l-2 pl-3 text-sm">
-                                    <p className="text-muted-foreground font-medium">
+                                    <p className="text-muted-foreground font-medium break-words">
                                         {update.status_from ? `${STATUS_LABELS[update.status_from]} → ` : ''}
                                         {update.status_to ? STATUS_LABELS[update.status_to] : ''}
                                     </p>
-                                    {update.note && <p>{update.note}</p>}
+                                    {update.note && <p className="break-words">{update.note}</p>}
                                     <p className="text-muted-foreground text-xs">{new Date(update.created_at).toLocaleString('id-ID')}</p>
                                 </div>
                             ))

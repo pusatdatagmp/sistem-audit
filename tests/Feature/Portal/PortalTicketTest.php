@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ComplaintTicket;
+use App\Models\Kitchen;
 use App\Models\MasterDataOption;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
@@ -17,19 +18,24 @@ test('guests are redirected to the login page', function () {
 });
 
 test('a reporter can view their own tickets and submit a new one', function () {
+    Storage::fake('public');
+
     $this->actingAs($this->reporter);
 
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $this->get(route('portal.index'))->assertOk();
     $this->get(route('portal.create'))->assertOk();
 
     $response = $this->post(route('portal.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Kompor tidak menyala',
         'description' => 'Sudah dicoba beberapa kali tetap tidak menyala.',
+        'photo' => UploadedFile::fake()->image('bukti.jpg'),
     ]);
 
     $ticket = ComplaintTicket::where('reporter_id', $this->reporter->id)->firstOrFail();
@@ -38,15 +44,17 @@ test('a reporter can view their own tickets and submit a new one', function () {
     $this->get(route('portal.show', $ticket))->assertOk();
 });
 
-test('a reporter can attach an optional photo when submitting a report', function () {
+test('a reporter can submit a report with a photo', function () {
     Storage::fake('public');
 
     $this->actingAs($this->reporter);
 
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $this->post(route('portal.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Kompor tidak menyala',
@@ -62,22 +70,22 @@ test('a reporter can attach an optional photo when submitting a report', functio
     Storage::disk('public')->assertExists($ticket->photo_path);
 });
 
-test('submitting a report without a photo is still allowed', function () {
+test('submitting a report without a photo is rejected', function () {
     $this->actingAs($this->reporter);
 
     $category = MasterDataOption::ofGroup('complaint_category')->first();
     $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+    $kitchen = Kitchen::factory()->create();
 
     $this->post(route('portal.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $category->id,
         'priority_option_id' => $priority->id,
         'subject' => 'Kompor tidak menyala',
         'description' => 'Sudah dicoba beberapa kali tetap tidak menyala.',
-    ])->assertSessionHasNoErrors();
+    ])->assertSessionHasErrors('photo');
 
-    $ticket = ComplaintTicket::where('reporter_id', $this->reporter->id)->firstOrFail();
-
-    expect($ticket->photo_path)->toBeNull();
+    expect(ComplaintTicket::where('reporter_id', $this->reporter->id)->exists())->toBeFalse();
 });
 
 test('a non image file is rejected as the report photo', function () {
@@ -93,6 +101,42 @@ test('a non image file is rejected as the report photo', function () {
         'description' => 'Sudah dicoba beberapa kali tetap tidak menyala.',
         'photo' => UploadedFile::fake()->create('bukti.pdf', 100),
     ])->assertSessionHasErrors('photo');
+});
+
+test('a driver sees their own kitchen pre-attached when opening the report form', function () {
+    $kitchen = Kitchen::factory()->create();
+    $driver = User::factory()->driver()->create(['kitchen_id' => $kitchen->id]);
+
+    $this->actingAs($driver);
+
+    $this->get(route('portal.create'))->assertInertia(fn ($page) => $page
+        ->where('auth.user.kitchen.id', $kitchen->id)
+        ->where('auth.user.kitchen.name', $kitchen->name));
+});
+
+test('a driver can submit a report using their own attached kitchen', function () {
+    Storage::fake('public');
+
+    $kitchen = Kitchen::factory()->create();
+    $driver = User::factory()->driver()->create(['kitchen_id' => $kitchen->id]);
+
+    $this->actingAs($driver);
+
+    $category = MasterDataOption::ofGroup('complaint_category')->first();
+    $priority = MasterDataOption::ofGroup('ticket_priority')->first();
+
+    $this->post(route('portal.store'), [
+        'kitchen_id' => $kitchen->id,
+        'category_option_id' => $category->id,
+        'priority_option_id' => $priority->id,
+        'subject' => 'Jalan rusak di akses dapur',
+        'description' => 'Jalan menuju dapur berlubang cukup dalam.',
+        'photo' => UploadedFile::fake()->image('bukti.jpg'),
+    ])->assertSessionHasNoErrors();
+
+    $ticket = ComplaintTicket::where('reporter_id', $driver->id)->firstOrFail();
+
+    expect($ticket->kitchen_id)->toBe($kitchen->id);
 });
 
 test('a reporter cannot view another reporter ticket', function () {

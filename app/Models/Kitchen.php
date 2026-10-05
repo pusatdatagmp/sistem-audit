@@ -50,4 +50,9 @@ class Kitchen extends Model
     {
         return $this->hasMany(ComplaintTicket::class);
     }
+
+    public function drivers(): HasMany
+    {
+        return $this->hasMany(User::class)->whereRelation('role', 'code', Role::CODE_DRIVER);
+    }
 }

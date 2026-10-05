@@ -1,4 +1,5 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,17 +15,26 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Jadwal Perawatan', href: '/vehicles/maintenance' },
 ];
 
+interface MaintenanceFilters {
+    vehicle_id?: string;
+    status_option_id?: string;
+    maintenance_type_option_id?: string;
+    sort?: string | null;
+    direction?: 'asc' | 'desc' | null;
+}
+
 interface MaintenanceIndexProps {
     schedules: Paginated<VehicleMaintenanceSchedule>;
     vehicles: Vehicle[];
     statusOptions: MasterDataOption[];
-    filters: { vehicle_id?: string; status_option_id?: string };
+    typeOptions: MasterDataOption[];
+    filters: MaintenanceFilters;
 }
 
-export default function MaintenanceIndex({ schedules, vehicles, statusOptions, filters }: MaintenanceIndexProps) {
+export default function MaintenanceIndex({ schedules, vehicles, statusOptions, typeOptions, filters }: MaintenanceIndexProps) {
     useFlashToast();
 
-    function updateFilter(key: 'vehicle_id' | 'status_option_id', value: string) {
+    function updateFilter(key: keyof MaintenanceFilters, value: string) {
         router.get(
             route('vehicles.maintenance.index'),
             { ...filters, [key]: value === 'all' ? undefined : value },
@@ -96,6 +106,23 @@ export default function MaintenanceIndex({ schedules, vehicles, statusOptions, f
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        <Select
+                            value={filters.maintenance_type_option_id ?? 'all'}
+                            onValueChange={(value) => updateFilter('maintenance_type_option_id', value)}
+                        >
+                            <SelectTrigger className="w-48">
+                                <SelectValue placeholder="Semua Jenis" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Jenis</SelectItem>
+                                {typeOptions.map((option) => (
+                                    <SelectItem key={option.id} value={String(option.id)}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -112,11 +139,26 @@ export default function MaintenanceIndex({ schedules, vehicles, statusOptions, f
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Kendaraan</TableHead>
-                                <TableHead>Jenis Perawatan</TableHead>
-                                <TableHead>Tanggal Jadwal</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Selesai Pada</TableHead>
+                                <SortableHeader label="Kendaraan" sortKey="vehicle" routeName="vehicles.maintenance.index" filters={filters} />
+                                <SortableHeader
+                                    label="Jenis Perawatan"
+                                    sortKey="maintenance_type"
+                                    routeName="vehicles.maintenance.index"
+                                    filters={filters}
+                                />
+                                <SortableHeader
+                                    label="Tanggal Jadwal"
+                                    sortKey="scheduled_date"
+                                    routeName="vehicles.maintenance.index"
+                                    filters={filters}
+                                />
+                                <SortableHeader label="Status" sortKey="status" routeName="vehicles.maintenance.index" filters={filters} />
+                                <SortableHeader
+                                    label="Selesai Pada"
+                                    sortKey="completed_at"
+                                    routeName="vehicles.maintenance.index"
+                                    filters={filters}
+                                />
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>

@@ -5,8 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import PortalLayout from '@/layouts/portal-layout';
-import { type Kitchen, type KitchenTool, type MasterDataOption, type Vehicle } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { type Kitchen, type KitchenTool, type MasterDataOption, type SharedData, type Vehicle } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 interface PortalCreateProps {
@@ -20,8 +20,11 @@ interface PortalCreateProps {
 export default function PortalCreate({ kitchens, categoryOptions, priorityOptions, kitchenTools, vehicles }: PortalCreateProps) {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+    const { auth } = usePage<SharedData>().props;
+    const driverKitchen = auth.user.role.code === 'driver' ? auth.user.kitchen : null;
+
     const { data, setData, post, processing, errors } = useForm({
-        kitchen_id: '',
+        kitchen_id: driverKitchen ? String(driverKitchen.id) : '',
         category_option_id: '',
         priority_option_id: '',
         related_kitchen_tool_id: '',
@@ -94,20 +97,23 @@ export default function PortalCreate({ kitchens, categoryOptions, priorityOption
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="kitchen_id">Dapur Terkait (opsional)</Label>
-                    <Select value={data.kitchen_id || 'none'} onValueChange={(value) => setData('kitchen_id', value === 'none' ? '' : value)}>
-                        <SelectTrigger id="kitchen_id">
-                            <SelectValue placeholder="Tidak ada" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="none">Tidak ada</SelectItem>
-                            {kitchens.map((kitchen) => (
-                                <SelectItem key={kitchen.id} value={String(kitchen.id)}>
-                                    {kitchen.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Label htmlFor="kitchen_id">Dapur Terkait</Label>
+                    {driverKitchen ? (
+                        <Input id="kitchen_id" value={driverKitchen.name} disabled readOnly />
+                    ) : (
+                        <Select value={data.kitchen_id} onValueChange={(value) => setData('kitchen_id', value)}>
+                            <SelectTrigger id="kitchen_id">
+                                <SelectValue placeholder="Pilih dapur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {kitchens.map((kitchen) => (
+                                    <SelectItem key={kitchen.id} value={String(kitchen.id)}>
+                                        {kitchen.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                     <InputError message={errors.kitchen_id} />
                 </div>
 
@@ -170,7 +176,7 @@ export default function PortalCreate({ kitchens, categoryOptions, priorityOption
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="photo">Foto Bukti (opsional)</Label>
+                    <Label htmlFor="photo">Foto Bukti</Label>
                     <Input
                         id="photo"
                         type="file"

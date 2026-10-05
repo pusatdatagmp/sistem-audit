@@ -15,6 +15,7 @@ Route::middleware(['auth', 'permission:dashboard.view'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/inventory.php';
+require __DIR__.'/equipment-requests.php';
 require __DIR__.'/master-data.php';
 require __DIR__.'/vehicles.php';
 require __DIR__.'/tickets.php';

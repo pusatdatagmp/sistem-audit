@@ -1,32 +1,54 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { SelfServiceNav } from '@/components/self-service-nav';
+import { Button } from '@/components/ui/button';
 import { type SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { LogOut } from 'lucide-react';
 import { type ReactNode } from 'react';
+import Swal from 'sweetalert2';
 
 interface DriverLayoutProps {
     children: ReactNode;
 }
 
 export default function DriverLayout({ children }: DriverLayoutProps) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, name, systemSettings } = usePage<SharedData>().props;
+
+    async function handleLogout() {
+        const confirmation = await Swal.fire({
+            icon: 'question',
+            title: 'Keluar dari akun?',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, keluar',
+            cancelButtonText: 'Batal',
+        });
+
+        if (confirmation.isConfirmed) {
+            router.post(route('logout'));
+        }
+    }
 
     return (
         <div className="bg-muted/30 flex min-h-svh flex-col">
             <header className="bg-background border-b">
-                <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-                    <Link href={route('driver.index')} className="flex items-center gap-2">
-                        <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md">
-                            <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
+                <div className="mx-auto flex max-w-2xl items-center justify-between gap-2 px-4 py-3">
+                    <Link href={route('driver.index')} className="flex min-w-0 items-center gap-2">
+                        <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-md">
+                            {systemSettings.logo_url ? (
+                                <img src={systemSettings.logo_url} alt={name} className="size-full object-contain" />
+                            ) : (
+                                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
+                            )}
                         </div>
-                        <span className="font-semibold">Portal Driver</span>
+                        <span className="truncate font-semibold">Portal Driver</span>
                     </Link>
 
-                    <div className="flex items-center gap-3 text-sm">
-                        <span className="text-muted-foreground">{auth.user.name}</span>
-                        <Link href={route('logout')} method="post" as="button" className="text-muted-foreground hover:text-foreground">
-                            Keluar
-                        </Link>
+                    <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
+                        <span className="hidden truncate text-muted-foreground sm:block">{auth.user.name}</span>
+                        <Button variant="outline" size="sm" className="shrink-0 px-2 sm:px-3" aria-label="Keluar" onClick={handleLogout}>
+                            <LogOut className="size-4" />
+                            <span className="hidden sm:inline">Keluar</span>
+                        </Button>
                     </div>
                 </div>
 

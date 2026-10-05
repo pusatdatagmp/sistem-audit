@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Driver\DriverInspectionController;
 use App\Http\Controllers\Driver\DriverUsageLogController;
+use App\Http\Controllers\Driver\EquipmentRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'permission:driver-portal.access'])->prefix('driver')->name('driver.')->group(function () {
@@ -16,5 +17,11 @@ Route::middleware(['auth', 'permission:driver-portal.access'])->prefix('driver')
         Route::get('/buat', [DriverInspectionController::class, 'create'])->name('create');
         Route::post('/', [DriverInspectionController::class, 'store'])->name('store');
         Route::get('/{inspection}', [DriverInspectionController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('pengajuan')->name('equipment-requests.')->group(function () {
+        Route::get('/', [EquipmentRequestController::class, 'index'])->name('index');
+        Route::get('/buat', [EquipmentRequestController::class, 'create'])->name('create');
+        Route::post('/', [EquipmentRequestController::class, 'store'])->name('store');
     });
 });

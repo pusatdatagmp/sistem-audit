@@ -101,7 +101,7 @@ test('index can be sorted by total stock descending', function () {
     $low = KitchenInventory::factory()->create(['quantity_good' => 2]);
     $high = KitchenInventory::factory()->create(['quantity_good' => 20]);
 
-    $response = $this->get(route('inventory.index', ['sort' => 'total_desc']));
+    $response = $this->get(route('inventory.index', ['sort' => 'total', 'direction' => 'desc']));
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page

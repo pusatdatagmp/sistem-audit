@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inventory;
 
+use App\Http\Controllers\Concerns\SortsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\StoreKitchenToolRequest;
 use App\Http\Requests\Inventory\UpdateKitchenToolRequest;
@@ -9,18 +10,49 @@ use App\Models\KitchenTool;
 use App\Models\MasterDataOption;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class KitchenToolController extends Controller
 {
-    public function index(): Response
+    use SortsQuery;
+
+    public function index(Request $request): Response
     {
+        $sortable = [
+            'code' => 'kitchen_tools.code',
+            'name' => 'kitchen_tools.name',
+            'unit' => 'kitchen_tools.unit',
+            'category' => fn () => MasterDataOption::query()->select('label')->whereColumn('id', 'kitchen_tools.category_option_id'),
+        ];
+
+        $query = KitchenTool::query()
+            ->with('category')
+            ->when($request->integer('category_option_id'), function ($query, $categoryOptionId) {
+                $query->where('category_option_id', $categoryOptionId);
+            })
+            ->when($request->has('is_active'), function ($query) use ($request) {
+                $query->where('is_active', $request->boolean('is_active'));
+            })
+            ->when($request->string('search')->toString(), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            });
+
+        $sortState = $this->applySort($query, $request, $sortable, fn ($q) => $q->orderBy('kitchen_tools.name'));
+
+        $kitchenTools = $query->paginate(20)->withQueryString();
+
         return Inertia::render('inventory/kitchen-tools/index', [
-            'kitchenTools' => KitchenTool::query()
-                ->with('category')
-                ->orderBy('name')
-                ->paginate(20),
+            'kitchenTools' => $kitchenTools,
+            'categoryOptions' => MasterDataOption::ofGroup('kitchen_tool_category')->active()->orderBy('sort_order')->get(['id', 'code', 'label']),
+            'filters' => [
+                ...$request->only(['category_option_id', 'is_active', 'search']),
+                ...$sortState,
+            ],
         ]);
     }
 

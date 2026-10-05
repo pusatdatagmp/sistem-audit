@@ -2,8 +2,9 @@ import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSep
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface UserMenuContentProps {
     user: User;
@@ -11,6 +12,21 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+
+    async function handleLogout() {
+        const confirmation = await Swal.fire({
+            icon: 'question',
+            title: 'Keluar dari akun?',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, keluar',
+            cancelButtonText: 'Batal',
+        });
+
+        if (confirmation.isConfirmed) {
+            cleanup();
+            router.post(route('logout'));
+        }
+    }
 
     return (
         <>
@@ -29,11 +45,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-                <Link className="block w-full" method="post" href={route('logout')} as="button" onClick={cleanup}>
-                    <LogOut className="mr-2" />
-                    Log out
-                </Link>
+            <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2" />
+                Log out
             </DropdownMenuItem>
         </>
     );

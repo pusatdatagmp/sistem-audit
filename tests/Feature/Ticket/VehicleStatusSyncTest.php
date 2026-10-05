@@ -1,10 +1,13 @@
 <?php
 
 use App\Models\ComplaintTicket;
+use App\Models\Kitchen;
 use App\Models\MasterDataOption;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\MasterDataSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(MasterDataSeeder::class);
@@ -18,32 +21,42 @@ beforeEach(function () {
 });
 
 test('creating a vehicle-issue ticket marks the vehicle as under repair', function () {
+    Storage::fake('public');
+
     $this->actingAs($this->user);
 
     $vehicle = Vehicle::factory()->create(['status_option_id' => $this->activeStatus->id]);
+    $kitchen = Kitchen::factory()->create();
 
     $this->post(route('tickets.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $this->vehicleIssueCategory->id,
         'priority_option_id' => $this->priority->id,
         'related_vehicle_id' => $vehicle->id,
         'subject' => 'Ban bocor di jalan',
         'description' => 'Ban depan bocor saat pengiriman.',
-    ]);
+        'photo' => UploadedFile::fake()->image('bukti.jpg'),
+    ])->assertSessionHasNoErrors();
 
     expect($vehicle->fresh()->status_option_id)->toBe($this->inRepairStatus->id);
 });
 
 test('creating a non-vehicle ticket does not touch any vehicle status', function () {
+    Storage::fake('public');
+
     $this->actingAs($this->user);
 
     $vehicle = Vehicle::factory()->create(['status_option_id' => $this->activeStatus->id]);
+    $kitchen = Kitchen::factory()->create();
 
     $this->post(route('tickets.store'), [
+        'kitchen_id' => $kitchen->id,
         'category_option_id' => $this->otherCategory->id,
         'priority_option_id' => $this->priority->id,
         'subject' => 'Panci penyok',
         'description' => 'Panci besar penyok karena jatuh.',
-    ]);
+        'photo' => UploadedFile::fake()->image('bukti.jpg'),
+    ])->assertSessionHasNoErrors();
 
     expect($vehicle->fresh()->status_option_id)->toBe($this->activeStatus->id);
 });

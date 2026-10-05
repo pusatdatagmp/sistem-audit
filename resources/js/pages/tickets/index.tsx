@@ -1,4 +1,5 @@
 import PaginationFooter from '@/components/pagination-footer';
+import SortableHeader from '@/components/sortable-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,14 @@ interface TicketsIndexProps {
     tickets: Paginated<ComplaintTicket>;
     categoryOptions: MasterDataOption[];
     priorityOptions: MasterDataOption[];
-    filters: { status?: string; priority_option_id?: string; category_option_id?: string; search?: string };
+    filters: {
+        status?: string;
+        priority_option_id?: string;
+        category_option_id?: string;
+        search?: string;
+        sort?: string | null;
+        direction?: 'asc' | 'desc' | null;
+    };
 }
 
 export default function TicketsIndex({ tickets, categoryOptions, priorityOptions, filters }: TicketsIndexProps) {
@@ -125,12 +133,12 @@ export default function TicketsIndex({ tickets, categoryOptions, priorityOptions
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>No. Tiket</TableHead>
-                                <TableHead>Subjek</TableHead>
-                                <TableHead>Kategori</TableHead>
-                                <TableHead>Prioritas</TableHead>
-                                <TableHead>Pelapor</TableHead>
-                                <TableHead>Status</TableHead>
+                                <SortableHeader label="No. Tiket" sortKey="ticket_number" routeName="tickets.index" filters={filters} />
+                                <SortableHeader label="Subjek" sortKey="subject" routeName="tickets.index" filters={filters} />
+                                <SortableHeader label="Kategori" sortKey="category" routeName="tickets.index" filters={filters} />
+                                <SortableHeader label="Prioritas" sortKey="priority" routeName="tickets.index" filters={filters} />
+                                <SortableHeader label="Pelapor" sortKey="reporter" routeName="tickets.index" filters={filters} />
+                                <SortableHeader label="Status" sortKey="status" routeName="tickets.index" filters={filters} />
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
