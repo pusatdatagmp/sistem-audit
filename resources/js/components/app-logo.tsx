@@ -7,13 +7,15 @@ export default function AppLogo() {
 
     return (
         <>
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center overflow-hidden rounded-md">
-                {systemSettings.logo_url ? (
+            {systemSettings.logo_url ? (
+                <div className="flex aspect-square size-10 items-center justify-center overflow-hidden rounded-md">
                     <img src={systemSettings.logo_url} alt={name} className="size-full object-contain" />
-                ) : (
+                </div>
+            ) : (
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center overflow-hidden rounded-md">
                     <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-                )}
-            </div>
+                </div>
+            )}
             <div className="ml-1 grid flex-1 text-left text-base">
                 <span className="mb-0.5 truncate leading-none font-semibold">{name}</span>
             </div>
