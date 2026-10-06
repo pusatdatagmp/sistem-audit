@@ -18,9 +18,11 @@ class SystemSettingController extends Controller
 
         return Inertia::render('system-settings/edit', [
             'setting' => [
+                'app_name' => $setting->app_name,
                 'logo_url' => $setting->logo_url,
                 'primary_color' => $setting->primary_color,
             ],
+            'default_app_name' => config('app.name', 'Laravel'),
         ]);
     }
 
@@ -41,6 +43,7 @@ class SystemSettingController extends Controller
             $setting->logo_path = $request->file('logo')->store('branding', 'public');
         }
 
+        $setting->app_name = $request->validated('app_name') ?: null;
         $setting->primary_color = $request->validated('primary_color') ?: null;
         $setting->save();
 

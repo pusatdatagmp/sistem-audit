@@ -12,6 +12,7 @@ class AppSetting extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'app_name',
         'logo_path',
         'primary_color',
     ];
@@ -24,6 +25,15 @@ class AppSetting extends Model
     public static function current(): self
     {
         return static::query()->firstOrCreate(['id' => 1]);
+    }
+
+    /**
+     * The application name shown in the UI, falling back to the
+     * `APP_NAME` env value when no custom name has been set.
+     */
+    public function displayName(): string
+    {
+        return $this->app_name ?: config('app.name', 'Laravel');
     }
 
     protected function logoUrl(): Attribute

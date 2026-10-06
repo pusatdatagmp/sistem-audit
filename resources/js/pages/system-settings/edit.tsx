@@ -16,18 +16,21 @@ const DEFAULT_COLOR = '#0f172a';
 
 interface SystemSettingsEditProps {
     setting: {
+        app_name: string | null;
         logo_url: string | null;
         primary_color: string | null;
     };
+    default_app_name: string;
 }
 
-export default function SystemSettingsEdit({ setting }: SystemSettingsEditProps) {
+export default function SystemSettingsEdit({ setting, default_app_name }: SystemSettingsEditProps) {
     useFlashToast();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors, reset } = useForm({
+        app_name: setting.app_name ?? '',
         logo: null as File | null,
         remove_logo: false as boolean,
         primary_color: setting.primary_color ?? '',
@@ -80,6 +83,25 @@ export default function SystemSettingsEdit({ setting }: SystemSettingsEditProps)
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Nama Aplikasi</CardTitle>
+                            <CardDescription>Nama ini tampil di sidebar, halaman masuk, dan judul tab browser untuk seluruh pengguna.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            <Label htmlFor="app_name">Nama Aplikasi</Label>
+                            <Input
+                                id="app_name"
+                                value={data.app_name}
+                                onChange={(e) => setData('app_name', e.target.value)}
+                                placeholder={default_app_name}
+                                className="max-w-sm"
+                            />
+                            <InputError message={errors.app_name} />
+                            <p className="text-muted-foreground text-xs">Kosongkan untuk memakai nama default: "{default_app_name}".</p>
+                        </CardContent>
+                    </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base">Logo Aplikasi</CardTitle>

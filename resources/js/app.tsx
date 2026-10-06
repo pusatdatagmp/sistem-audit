@@ -8,9 +8,12 @@ import { initializeTheme } from './hooks/use-appearance';
 
 declare global {
     const route: typeof routeFn;
+    interface Window {
+        __APP_NAME__?: string;
+    }
 }
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = window.__APP_NAME__ || import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

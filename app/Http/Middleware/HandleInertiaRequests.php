@@ -40,10 +40,11 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user()?->loadMissing(['role.permissions', 'kitchen']);
+        $appSetting = AppSetting::current();
 
         return array_merge(parent::share($request), [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => $appSetting->displayName(),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $user,
@@ -53,8 +54,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
             ],
             'systemSettings' => fn () => [
-                'logo_url' => AppSetting::current()->logo_url,
-                'primary_color' => AppSetting::current()->primary_color,
+                'logo_url' => $appSetting->logo_url,
+                'primary_color' => $appSetting->primary_color,
             ],
         ]);
     }
