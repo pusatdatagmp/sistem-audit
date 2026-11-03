@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            $this->command?->error('DatabaseSeeder berisi data dummy dan tidak boleh dijalankan di production. Gunakan: php artisan db:seed --class=RoleSeeder --force');
+
+            return;
+        }
+
         $this->call(RoleSeeder::class);
 
         // User::factory(10)->create();
@@ -34,6 +40,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Driver Contoh',
             'email' => 'driver@example.com',
             'role_id' => Role::where('code', Role::CODE_DRIVER)->value('id'),
+
         ]);
 
         $this->call([
