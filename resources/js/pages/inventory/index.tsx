@@ -135,6 +135,7 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Dapur" sortKey="kitchen" routeName="inventory.index" filters={filters} />
                                 <SortableHeader label="Alat" sortKey="tool" routeName="inventory.index" filters={filters} />
                                 <TableHead>Kategori</TableHead>
@@ -165,7 +166,7 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                         </TableHeader>
                         <TableBody>
                             <AnimatePresence initial={false}>
-                                {inventories.data.map((inventory) => (
+                                {inventories.data.map((inventory, index) => (
                                     <motion.tr
                                         key={inventory.id}
                                         layout
@@ -174,6 +175,7 @@ export default function InventoryIndex({ inventories, kitchens, categoryOptions,
                                         exit={{ opacity: 0 }}
                                         className="border-b transition-colors hover:bg-muted/50"
                                     >
+                                        <TableCell>{(inventories.from ?? 1) + index}</TableCell>
                                         <TableCell>{inventory.kitchen.name}</TableCell>
                                         <TableCell>{inventory.kitchen_tool.name}</TableCell>
                                         <TableCell>

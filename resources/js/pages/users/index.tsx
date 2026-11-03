@@ -176,6 +176,7 @@ export default function UsersIndex({ users, roles, kitchens, filters }: UsersInd
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Nama" sortKey="name" routeName="users.index" filters={filters} />
                                 <SortableHeader label="Email" sortKey="email" routeName="users.index" filters={filters} />
                                 <SortableHeader label="Role" sortKey="role" routeName="users.index" filters={filters} />
@@ -184,8 +185,9 @@ export default function UsersIndex({ users, roles, kitchens, filters }: UsersInd
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {users.data.map((user) => (
+                            {users.data.map((user, index) => (
                                 <TableRow key={user.id}>
+                                    <TableCell>{(users.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-medium">
                                         {user.name}
                                         {user.id === auth.user.id && (

@@ -85,6 +85,7 @@ export default function InventoryLogsIndex({ logs, kitchens, kitchenTools, filte
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Tanggal" sortKey="created_at" routeName="inventory.logs" filters={filters} />
                                 <SortableHeader label="Dapur" sortKey="kitchen" routeName="inventory.logs" filters={filters} />
                                 <SortableHeader label="Alat" sortKey="tool" routeName="inventory.logs" filters={filters} />
@@ -109,8 +110,9 @@ export default function InventoryLogsIndex({ logs, kitchens, kitchenTools, filte
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {logs.data.map((log) => (
+                            {logs.data.map((log, index) => (
                                 <TableRow key={log.id}>
+                                    <TableCell>{(logs.from ?? 1) + index}</TableCell>
                                     <TableCell>{new Date(log.created_at).toLocaleString('id-ID')}</TableCell>
                                     <TableCell>{log.kitchen_inventory.kitchen.name}</TableCell>
                                     <TableCell>{log.kitchen_inventory.kitchen_tool.name}</TableCell>

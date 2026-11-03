@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->unique(['vehicle_inspection_id', 'component_option_id']);
+            $table->unique(['vehicle_inspection_id', 'component_option_id'], 'vehicle_inspection_items_inspection_component_unique');
         });
     }
 

@@ -178,6 +178,7 @@ export default function EquipmentRequestsIndex({ equipmentRequests, kitchens, fi
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Dapur" sortKey="kitchen" routeName="equipment-requests.index" filters={filters} />
                                 <TableHead>Item</TableHead>
                                 <SortableHeader
@@ -194,8 +195,9 @@ export default function EquipmentRequestsIndex({ equipmentRequests, kitchens, fi
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {equipmentRequests.data.map((request) => (
+                            {equipmentRequests.data.map((request, index) => (
                                 <TableRow key={request.id}>
+                                    <TableCell>{(equipmentRequests.from ?? 1) + index}</TableCell>
                                     <TableCell>{request.kitchen.name}</TableCell>
                                     <TableCell>{itemLabel(request)}</TableCell>
                                     <TableCell className="text-right">{request.quantity}</TableCell>

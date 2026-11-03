@@ -102,14 +102,16 @@ export default function CreateInspection({ vehicles, components, conditionOption
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>No</TableHead>
                                     <TableHead>Komponen</TableHead>
                                     <TableHead className="w-48">Kondisi</TableHead>
                                     <TableHead>Catatan</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {components.map((component) => (
+                                {components.map((component, index) => (
                                     <TableRow key={component.id}>
+                                        <TableCell>{index + 1}</TableCell>
                                         <TableCell className="font-medium">{component.label}</TableCell>
                                         <TableCell>
                                             <Select

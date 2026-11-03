@@ -98,6 +98,7 @@ export default function KitchensIndex({ kitchens, filters }: KitchensIndexProps)
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Kode" sortKey="code" routeName="master-data.kitchens.index" filters={filters} />
                                 <SortableHeader label="Nama" sortKey="name" routeName="master-data.kitchens.index" filters={filters} />
                                 <SortableHeader label="PIC" sortKey="pic_name" routeName="master-data.kitchens.index" filters={filters} />
@@ -107,8 +108,9 @@ export default function KitchensIndex({ kitchens, filters }: KitchensIndexProps)
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {kitchens.data.map((kitchen) => (
+                            {kitchens.data.map((kitchen, index) => (
                                 <TableRow key={kitchen.id}>
+                                    <TableCell>{(kitchens.from ?? 1) + index}</TableCell>
                                     <TableCell>{kitchen.code}</TableCell>
                                     <TableCell>{kitchen.name}</TableCell>
                                     <TableCell>{kitchen.pic_name ?? '-'}</TableCell>

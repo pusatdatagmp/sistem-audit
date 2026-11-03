@@ -139,6 +139,7 @@ export default function MaintenanceIndex({ schedules, vehicles, statusOptions, t
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Kendaraan" sortKey="vehicle" routeName="vehicles.maintenance.index" filters={filters} />
                                 <SortableHeader
                                     label="Jenis Perawatan"
@@ -163,8 +164,9 @@ export default function MaintenanceIndex({ schedules, vehicles, statusOptions, t
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {schedules.data.map((schedule) => (
+                            {schedules.data.map((schedule, index) => (
                                 <TableRow key={schedule.id}>
+                                    <TableCell>{(schedules.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-medium">{schedule.vehicle.plate_number}</TableCell>
                                     <TableCell>{schedule.maintenance_type?.label ?? '-'}</TableCell>
                                     <TableCell>{new Date(schedule.scheduled_date).toLocaleDateString('id-ID')}</TableCell>

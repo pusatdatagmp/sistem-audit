@@ -140,6 +140,7 @@ export default function OptionGroupsIndex({ groups, filters }: OptionGroupsIndex
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Kode" sortKey="code" routeName="master-data.option-groups.index" filters={filters} />
                                 <SortableHeader label="Nama" sortKey="name" routeName="master-data.option-groups.index" filters={filters} />
                                 <SortableHeader
@@ -154,8 +155,9 @@ export default function OptionGroupsIndex({ groups, filters }: OptionGroupsIndex
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {groups.data.map((group) => (
+                            {groups.data.map((group, index) => (
                                 <TableRow key={group.id}>
+                                    <TableCell>{(groups.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-mono text-xs">{group.code}</TableCell>
                                     <TableCell>{group.name}</TableCell>
                                     <TableCell className="text-right">{group.options_count ?? 0}</TableCell>

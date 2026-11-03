@@ -133,6 +133,7 @@ export default function TicketsIndex({ tickets, categoryOptions, priorityOptions
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="No. Tiket" sortKey="ticket_number" routeName="tickets.index" filters={filters} />
                                 <SortableHeader label="Subjek" sortKey="subject" routeName="tickets.index" filters={filters} />
                                 <SortableHeader label="Kategori" sortKey="category" routeName="tickets.index" filters={filters} />
@@ -143,8 +144,9 @@ export default function TicketsIndex({ tickets, categoryOptions, priorityOptions
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {tickets.data.map((ticket) => (
+                            {tickets.data.map((ticket, index) => (
                                 <TableRow key={ticket.id}>
+                                    <TableCell>{(tickets.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
                                     <TableCell className="max-w-xs truncate">{ticket.subject}</TableCell>
                                     <TableCell>

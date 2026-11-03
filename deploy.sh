@@ -25,8 +25,19 @@ fail() { printf '\033[1;31m[x] %s\033[0m\n' "$*"; exit 1; }
 grep -qE '^DB_PASSWORD=GANTI_' .env && fail "DB_PASSWORD di .env masih default. Isi dulu (langkah 3b)."
 grep -qE '^DB_ROOT_PASSWORD=GANTI_' .env && fail "DB_ROOT_PASSWORD di .env masih default. Isi dulu (langkah 3b)."
 
+HOST_UID="$(grep -E '^HOST_UID=' .env | cut -d= -f2 | tr -d '[:space:]')"
+HOST_GID="$(grep -E '^HOST_GID=' .env | cut -d= -f2 | tr -d '[:space:]')"
+HOST_UID="${HOST_UID:-1000}"
+HOST_GID="${HOST_GID:-1000}"
+
+if [[ "$HOST_UID" == "0" || "$HOST_GID" == "0" ]]; then
+    fail "HOST_UID/HOST_GID tidak boleh 0 (root) — php-fpm menolak jalan sebagai root. Set ke 1000: sed -i 's|^HOST_UID=.*|HOST_UID=1000|; s|^HOST_GID=.*|HOST_GID=1000|' .env"
+fi
+
 if [[ "$(id -u)" == "0" ]]; then
-    warn "Script dijalankan sebagai root. Pastikan folder ini milik uid HOST_UID (lihat catatan root di dokumentasi)."
+    warn "Script dijalankan sebagai root — menyerahkan folder ke ${HOST_UID}:${HOST_GID}."
+    chown -R "${HOST_UID}:${HOST_GID}" .
+    git config --global --get-all safe.directory | grep -qxF "$(pwd)" || git config --global --add safe.directory "$(pwd)"
 fi
 
 step "Cek network ${NETWORK}"
@@ -62,7 +73,7 @@ docker compose exec -T app composer install --no-dev --optimize-autoloader --no-
 
 step "Build asset frontend (npm ci && npm run build)"
 docker run --rm \
-    --user "$(id -u):$(id -g)" \
+    --user "${HOST_UID}:${HOST_GID}" \
     -e HOME=/tmp \
     -v "$(pwd)":/var/www/html \
     -w /var/www/html \

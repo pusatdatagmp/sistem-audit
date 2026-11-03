@@ -132,6 +132,7 @@ export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, ki
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Plat Nomor" sortKey="plate_number" routeName="vehicles.index" filters={filters} />
                                 <SortableHeader label="Jenis" sortKey="type" routeName="vehicles.index" filters={filters} />
                                 <SortableHeader label="Merek/Model" sortKey="brand" routeName="vehicles.index" filters={filters} />
@@ -141,8 +142,9 @@ export default function VehiclesIndex({ vehicles, typeOptions, statusOptions, ki
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {vehicles.data.map((vehicle) => (
+                            {vehicles.data.map((vehicle, index) => (
                                 <TableRow key={vehicle.id}>
+                                    <TableCell>{(vehicles.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-medium">{vehicle.plate_number}</TableCell>
                                     <TableCell>
                                         <Badge variant="secondary">{vehicle.vehicle_type?.label ?? '-'}</Badge>

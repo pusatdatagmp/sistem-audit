@@ -126,6 +126,7 @@ export default function KitchenToolsIndex({ kitchenTools, categoryOptions, filte
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Kode" sortKey="code" routeName="inventory.kitchen-tools.index" filters={filters} />
                                 <SortableHeader label="Nama" sortKey="name" routeName="inventory.kitchen-tools.index" filters={filters} />
                                 <SortableHeader label="Satuan" sortKey="unit" routeName="inventory.kitchen-tools.index" filters={filters} />
@@ -135,8 +136,9 @@ export default function KitchenToolsIndex({ kitchenTools, categoryOptions, filte
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {kitchenTools.data.map((tool) => (
+                            {kitchenTools.data.map((tool, index) => (
                                 <TableRow key={tool.id}>
+                                    <TableCell>{(kitchenTools.from ?? 1) + index}</TableCell>
                                     <TableCell>{tool.code}</TableCell>
                                     <TableCell>{tool.name}</TableCell>
                                     <TableCell>{tool.unit}</TableCell>

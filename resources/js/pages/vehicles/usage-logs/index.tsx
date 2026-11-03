@@ -115,6 +115,7 @@ export default function UsageLogsIndex({ usageLogs, vehicles, drivers, kitchens,
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Tanggal" sortKey="usage_date" routeName="vehicles.usage-logs.index" filters={filters} />
                                 <SortableHeader label="Kendaraan" sortKey="vehicle" routeName="vehicles.usage-logs.index" filters={filters} />
                                 <SortableHeader label="Sopir" sortKey="driver" routeName="vehicles.usage-logs.index" filters={filters} />
@@ -125,8 +126,9 @@ export default function UsageLogsIndex({ usageLogs, vehicles, drivers, kitchens,
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {usageLogs.data.map((log) => (
+                            {usageLogs.data.map((log, index) => (
                                 <TableRow key={log.id}>
+                                    <TableCell>{(usageLogs.from ?? 1) + index}</TableCell>
                                     <TableCell>{new Date(log.usage_date).toLocaleDateString('id-ID')}</TableCell>
                                     <TableCell className="font-medium">{log.vehicle.plate_number}</TableCell>
                                     <TableCell>{log.driver.name}</TableCell>

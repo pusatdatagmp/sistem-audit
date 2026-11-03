@@ -119,6 +119,7 @@ export default function InspectionsIndex({ inspections, vehicles, inspectors, fi
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Tanggal" sortKey="inspected_at" routeName="vehicles.inspections.index" filters={filters} />
                                 <SortableHeader label="Kendaraan" sortKey="vehicle" routeName="vehicles.inspections.index" filters={filters} />
                                 <SortableHeader label="Odometer" sortKey="odometer" routeName="vehicles.inspections.index" filters={filters} />
@@ -133,8 +134,9 @@ export default function InspectionsIndex({ inspections, vehicles, inspectors, fi
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {inspections.data.map((inspection) => (
+                            {inspections.data.map((inspection, index) => (
                                 <TableRow key={inspection.id}>
+                                    <TableCell>{(inspections.from ?? 1) + index}</TableCell>
                                     <TableCell>{new Date(inspection.inspected_at).toLocaleString('id-ID')}</TableCell>
                                     <TableCell className="font-medium">{inspection.vehicle.plate_number}</TableCell>
                                     <TableCell>{inspection.odometer ?? '-'}</TableCell>

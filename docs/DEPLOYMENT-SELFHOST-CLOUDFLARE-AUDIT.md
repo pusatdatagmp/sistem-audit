@@ -125,8 +125,9 @@ Jalankan blok ini **sekali** (copy-paste utuh):
 
 ```bash
 cd /opt/apps/audit
-sed -i "s|^HOST_UID=.*|HOST_UID=$(id -u)|" .env
-sed -i "s|^HOST_GID=.*|HOST_GID=$(id -g)|" .env
+if [ "$(id -u)" = "0" ]; then UID_VAL=1000; GID_VAL=1000; else UID_VAL=$(id -u); GID_VAL=$(id -g); fi
+sed -i "s|^HOST_UID=.*|HOST_UID=$UID_VAL|" .env
+sed -i "s|^HOST_GID=.*|HOST_GID=$GID_VAL|" .env
 sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$(openssl rand -hex 24)|" .env
 sed -i "s|^DB_ROOT_PASSWORD=.*|DB_ROOT_PASSWORD=$(openssl rand -hex 24)|" .env
 sed -i "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" .env

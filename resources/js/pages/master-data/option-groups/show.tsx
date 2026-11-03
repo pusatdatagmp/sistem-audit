@@ -145,6 +145,7 @@ export default function OptionGroupShow({ group, options, filters }: OptionGroup
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader
                                     label="Urutan"
                                     sortKey="sort_order"
@@ -172,8 +173,9 @@ export default function OptionGroupShow({ group, options, filters }: OptionGroup
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {options.data.map((option) => (
+                            {options.data.map((option, index) => (
                                 <TableRow key={option.id}>
+                                    <TableCell>{(options.from ?? 1) + index}</TableCell>
                                     <TableCell>{option.sort_order}</TableCell>
                                     <TableCell>{option.label}</TableCell>
                                     <TableCell className="font-mono text-xs">{option.code}</TableCell>

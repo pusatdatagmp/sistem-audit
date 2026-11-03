@@ -58,14 +58,16 @@ export default function ShowInspection({ inspection }: ShowInspectionProps) {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <TableHead>Komponen</TableHead>
                                 <TableHead>Kondisi</TableHead>
                                 <TableHead>Catatan</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {inspection.items.map((item) => (
+                            {inspection.items.map((item, index) => (
                                 <TableRow key={item.id}>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell className="font-medium">{item.component.label}</TableCell>
                                     <TableCell>
                                         <Badge variant={conditionBadgeVariant(item.condition.code)}>{item.condition.label}</Badge>

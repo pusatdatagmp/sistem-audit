@@ -78,6 +78,7 @@ export default function RolesIndex({ roles, filters }: RolesIndexProps) {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>No</TableHead>
                                 <SortableHeader label="Nama" sortKey="name" routeName="roles.index" filters={filters} />
                                 <SortableHeader label="Kode" sortKey="code" routeName="roles.index" filters={filters} />
                                 <SortableHeader
@@ -99,8 +100,9 @@ export default function RolesIndex({ roles, filters }: RolesIndexProps) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {roles.data.map((role) => (
+                            {roles.data.map((role, index) => (
                                 <TableRow key={role.id}>
+                                    <TableCell>{(roles.from ?? 1) + index}</TableCell>
                                     <TableCell className="font-medium">{role.name}</TableCell>
                                     <TableCell className="font-mono text-xs">{role.code}</TableCell>
                                     <TableCell className="text-right">{role.permissions_count ?? 0}</TableCell>
