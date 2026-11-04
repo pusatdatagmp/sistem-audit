@@ -50,7 +50,9 @@ class MasterDataSeeder extends Seeder
     ];
 
     /**
-     * Run the database seeds.
+     * Seed the reference groups and options the system depends on. Safe to run
+     * on every deploy: missing rows are created, while options an admin has
+     * already edited (label, order, active state) are left untouched.
      */
     public function run(): void
     {
@@ -61,7 +63,7 @@ class MasterDataSeeder extends Seeder
             );
 
             foreach ($definition['options'] as $sortOrder => $label) {
-                $group->options()->updateOrCreate(
+                $group->options()->firstOrCreate(
                     ['code' => str($label)->slug()],
                     ['label' => $label, 'sort_order' => $sortOrder, 'is_active' => true],
                 );

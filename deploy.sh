@@ -2,7 +2,7 @@
 # Deploy Sistem Audit GMP (Docker + Cloudflare Tunnel shared-network).
 #
 #   ./deploy.sh --first   deploy pertama (tanpa git pull, + seed role & permission)
-#   ./deploy.sh           deploy berikutnya (git pull, build, migrate, cache ulang)
+#   ./deploy.sh           deploy berikutnya (git pull, build, migrate, seed master data, cache ulang)
 
 set -euo pipefail
 
@@ -94,6 +94,9 @@ if [[ "$FIRST" == true ]]; then
     step "Seed role & permission (tanpa data dummy)"
     docker compose exec -T app php artisan db:seed --class=RoleSeeder --force
 fi
+
+step "Seed master data referensi (idempoten, tidak menimpa perubahan admin)"
+docker compose exec -T app php artisan db:seed --class=MasterDataSeeder --force
 
 step "optimize (cache config/route/view/event)"
 docker compose exec -T app php artisan optimize:clear >/dev/null
